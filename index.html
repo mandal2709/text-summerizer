@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Text Summarizer</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #fff7ed;
+            color: #333;
+            margin: 0;
+            padding: 0;
+        }
+        .container {
+            border-radius: 10px;
+            max-width: 600px;
+            margin: 50px auto;
+            padding: 20px;
+            background-color: #fff;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        h1 {
+            text-align: center;
+            color: #fb923c;
+        }
+        h3 {
+            text-align: center;
+            margin-top: -20px;
+            margin-bottom: 40px;
+        }
+        p {
+            text-align: center;
+            color: #555;
+        }
+        form {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+        textarea {
+            height: 150px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            padding: 10px;
+            font-size: 16px;
+        }
+        button {
+            padding: 10px 15px;
+            font-size: 16px;
+            cursor: pointer;
+            background-color: #fb923c;
+            color: #fff;
+            border: none;
+            border-radius: 5px;
+        }
+        button:hover {
+            background-color: #f97316;
+        }
+        .summary-output {
+            margin-top: 20px;
+            background: #fef3c7;
+            padding: 15px;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+        }
+
+        #summary-heading {
+            margin-top: 0;
+            margin-bottom: 0px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Text Summarizer</h1>
+        <h3>using Hugging Face Transformers</h3>
+        <p>Upload a text file or paste your text below to get a summary.</p>
+        <form id="summerization-form">
+            <textarea id="dialogue-input" placeholder="Enter text to summarize..." required></textarea>
+            <button type="submit">Summarize</button>   
+        </form>
+        <div class="summary-output">
+            <h3 id="summary-heading">Content Summary</h3>
+            <p id="summary-text"></p>
+        </div>
+    </div>
+
+    <script>
+        document.getElementById('summerization-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            //Get reference to the input text and summary output elements
+            const dialogueInput = document.getElementById('dialogue-input');
+            const summaryText = document.getElementById('summary-text');
+            const submitButton = e.target.querySelector('button');
+
+            const dialogue = dialogueInput.value.trim();
+            if (!dialogue) return;
+
+            // Show processing message and disable button
+            summaryText.textContent = 'Processing...';
+            submitButton.disabled = true;
+
+            try {
+                // send dialogue to backend for summarization
+                const response = await fetch('/summarize/', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ dialogue: dialogue })
+                });
+
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+
+                const data = await response.json();
+                summaryText.innerText = data.summary || 'No summary available.';
+            } catch (err) {
+                console.error('Error:', err);
+                summaryText.textContent = 'An error occurred while summarizing the text.';
+            } finally {
+                // Re-enable the button
+                submitButton.disabled = false;
+            }
+        });
+    </script>
+</body>
+</html>
